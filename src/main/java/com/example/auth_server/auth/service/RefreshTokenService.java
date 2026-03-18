@@ -1,0 +1,50 @@
+package com.example.auth_server.auth.service;
+
+import com.example.auth_server.auth.dto.AuthResponse;
+import com.example.auth_server.auth.dto.RefreshRequest;
+import com.example.auth_server.auth.entity.RefreshToken;
+import com.example.auth_server.auth.repository.RefreshTokenRepository;
+import com.example.auth_server.security.JwtService;
+import com.example.auth_server.user.model.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+@RequiredArgsConstructor
+public class RefreshTokenService {
+    private static final int DAYS_TO_EXPIRE = 7;
+    private final RefreshTokenRepository repository;
+    private final JwtService jwtService;
+
+    public RefreshToken createRefreshToken(User user) {
+
+        RefreshToken token = new RefreshToken(user, DAYS_TO_EXPIRE);
+
+        return repository.save(token);
+    }
+
+    public RefreshToken validate(String token) {
+
+        RefreshToken refreshToken = repository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+        if (refreshToken.getExpirationDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Refresh token expired");
+        }
+        return refreshToken;
+    }
+
+    public AuthResponse refresh(RefreshRequest request) {
+
+        RefreshToken refreshToken = validate(request.getRefreshToken());
+
+        String newAcessToken = jwtService.generateToken(refreshToken.getUser().getEmail());
+        return AuthResponse.builder()
+                .token(newAcessToken)
+                .refreshToken(refreshToken.getToken())
+                .build();
+
+    }
+}

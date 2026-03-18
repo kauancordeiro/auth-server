@@ -1,7 +1,8 @@
 package com.example.auth_server.auth.service;
 
+import com.example.auth_server.auth.dto.AuthResponse;
 import com.example.auth_server.auth.dto.LoginRequest;
-import com.example.auth_server.auth.dto.LoginResponse;
+import com.example.auth_server.auth.entity.RefreshToken;
 import com.example.auth_server.security.JwtService;
 import com.example.auth_server.user.model.User;
 import com.example.auth_server.user.repository.UserRepository;
@@ -16,18 +17,21 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
-    public LoginResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         validatePassword(request.getPassword(), user.getPassword());
 
-        String token = jwtService.generateToken(user.getEmail());
+        String acessToken = jwtService.generateToken(user.getEmail());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-        return LoginResponse.builder()
-                .token(token)
+        return AuthResponse.builder()
+                .token(acessToken)
+                .refreshToken(refreshToken.getToken())
                 .build();
     }
 
