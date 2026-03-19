@@ -27,6 +27,8 @@ public class RefreshToken {
 
     private LocalDateTime expirationDate;
 
+    private Boolean revoked;
+
     @ManyToOne
     private User user;
 
@@ -34,6 +36,7 @@ public class RefreshToken {
     public RefreshToken(User user, int daysToExpire) {
         this.setUser(user);
         this.setToken(UUID.randomUUID().toString());
+        this.setRevoked(false);
         this.setExpirationDate(LocalDateTime.now().plusDays(daysToExpire));
     }
 }

@@ -30,6 +30,10 @@ public class RefreshTokenService {
         RefreshToken refreshToken = repository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
+        if (refreshToken.getRevoked()) {
+            throw new RuntimeException("Token already used");
+        }
+
         if (refreshToken.getExpirationDate().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Refresh token expired");
         }
@@ -38,12 +42,16 @@ public class RefreshTokenService {
 
     public AuthResponse refresh(RefreshRequest request) {
 
-        RefreshToken refreshToken = validate(request.getRefreshToken());
+        RefreshToken oldToken = validate(request.getRefreshToken());
+        oldToken.setRevoked(true);
+        repository.save(oldToken);
 
-        String newAcessToken = jwtService.generateToken(refreshToken.getUser().getEmail());
+        RefreshToken newToken = createRefreshToken(oldToken.getUser());
+        String newAccessToken = jwtService.generateToken(oldToken.getUser().getEmail());
+
         return AuthResponse.builder()
-                .token(newAcessToken)
-                .refreshToken(refreshToken.getToken())
+                .token(newAccessToken)
+                .refreshToken(newToken.getToken())
                 .build();
 
     }
