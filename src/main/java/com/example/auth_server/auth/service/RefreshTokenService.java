@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -55,4 +56,24 @@ public class RefreshTokenService {
                 .build();
 
     }
+
+    public void logout(RefreshRequest request) {
+
+        RefreshToken refreshToken = validate(request.getRefreshToken());
+
+        User user = refreshToken.getUser();
+
+        List<RefreshToken> tokens = repository.findAllByUserAndRevokedFalse(user);
+
+        revokeAllTokens(tokens);
+
+        repository.saveAll(tokens);
+    }
+
+    private static void revokeAllTokens(List<RefreshToken> tokens) {
+        for (RefreshToken token : tokens) {
+            token.setRevoked(true);
+        }
+    }
+
 }

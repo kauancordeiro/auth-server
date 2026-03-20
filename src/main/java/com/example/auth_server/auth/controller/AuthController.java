@@ -6,6 +6,7 @@ import com.example.auth_server.auth.dto.RefreshRequest;
 import com.example.auth_server.auth.service.AuthService;
 import com.example.auth_server.auth.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,5 +28,11 @@ public class AuthController {
     @PostMapping("/refresh")
     public AuthResponse refreshToken(@RequestBody RefreshRequest request) {
         return refreshTokenService.refresh(request);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody RefreshRequest request) {
+        refreshTokenService.logout(request);
+        return ResponseEntity.ok().build();
     }
 }
