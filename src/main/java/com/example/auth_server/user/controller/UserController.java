@@ -4,6 +4,7 @@ import com.example.auth_server.user.dto.CreateUserRequest;
 import com.example.auth_server.user.dto.UserResponse;
 import com.example.auth_server.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class UserController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
         return userService.getUsers();
     }
