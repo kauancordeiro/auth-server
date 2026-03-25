@@ -5,7 +5,6 @@ import com.example.auth_server.user.dto.UserResponse;
 import com.example.auth_server.user.model.User;
 import com.example.auth_server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,17 +15,17 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponse createUser(CreateUserRequest request) {
         validateEmail(request.getEmail());
-        String passEncoded = encodePass(request.getPassword());
+        String passEncoded = encodePassword(request.getPassword());
         User user = new User(request, passEncoded);
         user = userRepository.save(user);
         return new UserResponse(user);
     }
 
-    private String encodePass(String password) {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private String encodePassword(String password) {
         return passwordEncoder.encode(password);
     }
 
